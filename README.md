@@ -1,73 +1,47 @@
-
 # Backup and Recovery Script for AmneziaVPN
-
-Этот скрипт предназначен для создания резервных копий, восстановления и управления конфигурационными файлами AmneziaVPN.
-
-## Описание
-
-Скрипт выполняет следующие функции:
-- Создание резервных копий конфигурационных файлов.
-- Восстановление конфигурационных файлов из резервных копий.
-- Удаление старых резервных копий.
-- Список доступных резервных копий.
-
-## Установка
-
-1. Убедитесь, что у вас установлены Python и Docker.
-2. Клонируйте этот репозиторий на ваш локальный компьютер.
-3. Установите необходимые зависимости, если они есть.
-
-## Переменные окружения
-
-Перед запуском скрипта, установите следующие переменные окружения:
-
-- `LOCAL_BACKUP_DIR`: путь к локальной директории для хранения резервных копий.
-- `NETWORK_BACKUP_DIR`: путь к сетевой директории для хранения резервных копий.
-
-Пример (для Linux/MacOS):
+This script is designed to create backups, restore, and manage configuration files for AmneziaVPN.
+## Description
+The script performs the following functions:
+- Creating backup copies of configuration files.
+- Restoring configuration files from backups.
+- Deleting old backups.
+- Listing available backups.
+## Installation
+1. Make sure you have Python and Docker installed.
+2. Clone this repository to your local computer.
+3. Install any necessary dependencies, if any.
+## Environment Variables
+Before running the script, set the following environment variables:
+- `LOCAL_BACKUP_DIR`: path to the local directory for storing backups.
+- `NETWORK_BACKUP_DIR`: path to the network directory for storing backups.
+Example (for Linux/MacOS):
 ```bash
 export LOCAL_BACKUP_DIR='/your/local/backup/path'
 export NETWORK_BACKUP_DIR='/your/network/backup/path'
 ```
-
-## Использование
-
-Запустите скрипт с нужными параметрами:
-
-### Создание резервной копии
-
+## Usage
+Run the script with the desired parameters:
+### Creating a backup
 ```bash
 python backup_recovery_amnezia.py --backup
 ```
-
-### Восстановление из резервной копии
-
+### Restoring from a backup
 ```bash
 python backup_recovery_amnezia.py --restore
 ```
-
-Вы также можете указать конкретную резервную копию для восстановления:
-
+You can also specify a specific backup to restore:
 ```bash
 python backup_recovery_amnezia.py --restore <backup_name>
 ```
-
-### Удаление старых резервных копий
-
+### Deleting old backups
 ```bash
 python backup_recovery_amnezia.py --cleanup
 ```
-
-### Список доступных резервных копий
-
+### Listing available backups
 ```bash
 python backup_recovery_amnezia.py --list
 ```
-
-## Примечание
-
-Убедитесь, что у вас есть достаточные права для выполнения операций с Docker и доступ к указанным директориям для хранения резервных копий.
-
-## Лицензия
-
-Этот проект лицензирован под лицензией MIT.
+## Note
+Make sure you have sufficient permissions to perform Docker operations and access the specified directories for storing backups.
+## License
+This project is licensed under the MIT License. Please read the full license text in the [LICENSE](LICENSE) file.
