@@ -7,6 +7,14 @@ import filecmp
 import sys
 import subprocess
 
+local_backup_dir = os.getenv('LOCAL_BACKUP_DIR')
+network_backup_dir = os.getenv('NETWORK_BACKUP_DIR')
+
+if not local_backup_dir:
+    raise EnvironmentError("Environment variable LOCAL_BACKUP_DIR is not set.")
+if not network_backup_dir:
+    raise EnvironmentError("Environment variable NETWORK_BACKUP_DIR is not set.")
+
 def get_container_id(container_name):
     try:
         result = subprocess.run(['docker', 'ps', '-q', '-f', f'name={container_name}'], capture_output=True, text=True)
@@ -34,15 +42,6 @@ container_id = get_container_id(container_name)
 if container_id:
     wg0_conf_path = get_file_path_in_container(container_id, 'opt/amnezia/awg/wg0.conf')
     clients_table_path = get_file_path_in_container(container_id, 'opt/amnezia/awg/clientsTable')
-
-local_backup_dir = os.getenv('LOCAL_BACKUP_DIR')
-network_backup_dir = os.getenv('NETWORK_BACKUP_DIR')
-
-if not local_backup_dir:
-    raise EnvironmentError("Environment variable LOCAL_BACKUP_DIR is not set.")
-if not network_backup_dir:
-    raise EnvironmentError("Environment variable NETWORK_BACKUP_DIR is not set.")
-
 
 if not os.path.exists(local_backup_dir):
     os.makedirs(local_backup_dir)
