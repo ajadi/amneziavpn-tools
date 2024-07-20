@@ -7,12 +7,16 @@ import filecmp
 import sys
 import subprocess
 
-local_backup_dir = os.getenv('LOCAL_BACKUP_DIR')
-network_backup_dir = os.getenv('NETWORK_BACKUP_DIR')
+LOCAL_BACKUP_DIR = os.getenv('LOCAL_BACKUP_DIR')
+NETWORK_BACKUP_DIR = os.getenv('NETWORK_BACKUP_DIR')
+CONTAINER_NAME = 'amnezia-awg'
+WG0_CONF_PATH = 'opt/amnezia/awg/wg0.conf'
+CLIENTS_TABLE_PATH = 'opt/amnezia/awg/clientsTable'
+BACKUP_RETENTION_DAYS = 30
 
-if not local_backup_dir:
+if not LOCAL_BACKUP_DIR:
     raise EnvironmentError("Environment variable LOCAL_BACKUP_DIR is not set.")
-if not network_backup_dir:
+if not NETWORK_BACKUP_DIR:
     raise EnvironmentError("Environment variable NETWORK_BACKUP_DIR is not set.")
 
 def get_container_id(container_name):
@@ -37,14 +41,13 @@ def get_file_path_in_container(container_id, file_path):
         print(f"Error retrieving file path in container: {e}")
         return None
 
-container_name = 'amnezia-awg'
-container_id = get_container_id(container_name)
+container_id = get_container_id(CONTAINER_NAME)
 if container_id:
-    wg0_conf_path = get_file_path_in_container(container_id, 'opt/amnezia/awg/wg0.conf')
-    clients_table_path = get_file_path_in_container(container_id, 'opt/amnezia/awg/clientsTable')
+    wg0_conf_path = get_file_path_in_container(container_id, WG0_CONF_PATH)
+    clients_table_path = get_file_path_in_container(container_id, CLIENTS_TABLE_PATH)
 
-if not os.path.exists(local_backup_dir):
-    os.makedirs(local_backup_dir)
+if not os.path.exists(LOCAL_BACKUP_DIR):
+    os.makedirs(LOCAL_BACKUP_DIR)
 
 def create_backup(backup_dir):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -56,7 +59,8 @@ def create_backup(backup_dir):
 
     if wg0_backup_path and clients_table_backup_path:
         print(f"Backups successfully created in {backup_subdir}")
-        sync_directories(backup_dir, network_backup_dir)
+        sync_directories(backup_dir, NETWORK_BACKUP_DIR)
+        delete_old_backups(backup_dir, BACKUP_RETENTION_DAYS)
     else:
         print("Error creating backups.")
 
@@ -123,7 +127,6 @@ def restore_file(src_path, backup_path):
     shutil.copy2(backup_path, src_path)
     print(f"File {src_path} successfully restored from {backup_path}")
 
-
 def delete_old_backups(backup_dir, days=30):
     now = datetime.now()
     cutoff = now - timedelta(days=days)
@@ -174,6 +177,7 @@ Options:
 --restore [NAME] Restore configuration files from a backup. If NAME is not specified, a selection will be prompted.
 --cleanup Delete old backups
 --list List all backups
+--sync Synchronize local backup directory with network backup directory
 -h, --help Show this help message and exit
 
 Examples:
@@ -182,6 +186,7 @@ Examples:
   {script_name} --restore 20230615_123456
   {script_name} --cleanup
   {script_name} --list
+  {script_name} --sync
 """
     print(help_message)
 
@@ -191,6 +196,7 @@ def main():
     parser.add_argument('--restore', nargs='?', const=True, help='Restore configuration files from a backup')
     parser.add_argument('--cleanup', action='store_true', help='Delete old backups')
     parser.add_argument('--list', action='store_true', help='List all backups')
+    parser.add_argument('--sync', action='store_true', help='Synchronize local backup directory with network backup directory')
     parser.add_argument('-h', '--help', action='store_true', help='Show this help message and exit')
 
     args = parser.parse_args()
@@ -200,16 +206,16 @@ def main():
         return
 
     if args.backup:
-        create_backup(local_backup_dir)
+        create_backup(LOCAL_BACKUP_DIR)
 
     if args.restore is not None:
-        backups = sorted(os.listdir(local_backup_dir), key=lambda x: os.path.getmtime(os.path.join(local_backup_dir, x)))
+        backups = sorted(os.listdir(LOCAL_BACKUP_DIR), key=lambda x: os.path.getmtime(os.path.join(LOCAL_BACKUP_DIR, x)))
         if not backups:
             print("No backups available.")
             return
 
         if args.restore is True:
-            list_backups(local_backup_dir)
+            list_backups(LOCAL_BACKUP_DIR)
             default_choice = len(backups)
             choice = input(f"Enter the number of the backup to restore [default is {default_choice}]: ") or default_choice
 
@@ -222,14 +228,16 @@ def main():
         else:
             backup_name = args.restore
 
-        restore_backup(local_backup_dir, backup_name)
+        restore_backup(LOCAL_BACKUP_DIR, backup_name)
 
     if args.cleanup:
-        delete_old_backups(local_backup_dir)
+        delete_old_backups(LOCAL_BACKUP_DIR)
 
     if args.list:
-        list_backups(local_backup_dir)
+        list_backups(LOCAL_BACKUP_DIR)
+
+    if args.sync:
+        sync_directories(LOCAL_BACKUP_DIR, NETWORK_BACKUP_DIR)
 
 if __name__ == "__main__":
     main()
-
